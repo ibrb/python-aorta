@@ -1,0 +1,15 @@
+---
+language: python
+python:
+- 3.5
+sudo: true
+dist: xenial
+
+before_install:
+- pip install coverage
+- pip install nose
+- pip install -r requirements.txt
+- ln -s `which coverage` coverage3
+
+script:
+- ./test

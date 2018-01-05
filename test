@@ -1,0 +1,16 @@
+#!/bin/sh
+set +e
+rm -rf .coverage
+SCRIPT=$(pwd)
+SCRIPTPATH=$(dirname "$SCRIPT")
+MIN_PERCENTAGE=100
+MODULE_NAME=aorta
+export PYTHONPATH="$SCRIPTPATH:$PYTHONPATH"
+if [ -d "$SCRIPTPATH/env" ]; then
+    . env/bin/activate
+fi
+echo "\nRunning Python 3 unit tests\n"
+coverage3 run -m nose --cover-package=$MODULE_NAME $@ && \
+coverage3 report --include=$MODULE_NAME/* \
+    --fail-under $MIN_PERCENTAGE -m\
+    --omit **/test_*
