@@ -30,6 +30,12 @@ Vagrant.configure("2") do |config|
       systemctl enable postgresql-9.6
       sudo -u postgres createdb aorta
 
+      # Ensure that firewalld allows AMQP connections to the
+      # development machine
+      service firewalld start
+      firewall-cmd --zone=public --add-port=5672/tcp --permanent
+      firewall-cmd --reload
+
       # Install some applications for command-line debugging.
       yum install -y gcc python-devel
       curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py" && python get-pip.py
