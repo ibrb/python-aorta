@@ -85,6 +85,8 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
+
+
     def transfer(self, host, source, target, sender):
         """Transmit the next message in the queue to the AMQP remote
         peer.
@@ -107,9 +109,23 @@ class BaseBuffer:
             if message is None:
                 return
 
-            delivery = sender.send(self.pop(), self.generate_tag())
+            tag = self.generate_tag()
+            delivery = sender.send(self.pop(), tag)
+
+            assert delivery.tag == tag
             self.track(host, port, source, target, sender.name,
                 delivery.tag, message)
+
+    def track(self, host, port, source, target, link, tag, message):
+        """Track the delivery of `message` to the AMQP remote peer.
+
+        Args:
+
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
 
     def on_transmitted(self, delivery, message):
         """Assumed to be invoked when the sender has transmitted

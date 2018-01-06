@@ -37,3 +37,7 @@ class BaseBufferTestCase(unittest.TestCase):
     def test_len_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
             len(self.buf)
+
+    def test_track_raises_notimplementederror(self):
+        with self.assertRaises(NotImplementedError):
+            self.buf.track(None, None, None, None, None, None, None)
