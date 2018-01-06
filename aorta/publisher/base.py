@@ -114,7 +114,7 @@ class BasePublisher:
         # backend schedule it for transission to the remote AMQP peer.
         self.backend.put(message)
 
-    def on_settled(self, delivery, state, disposition):
+    def on_settled(self, tag, state, disposition):
         """Invoked when the AMQP peers agree on the state of a transfer.
 
         A transfer has three possible final outcomes (terminal delivery
@@ -143,8 +143,7 @@ class BasePublisher:
         specification, section 3.4.
 
         Args:
-            delivery (proton.Delivery): the message transfer that is being
-                settled.
+            tag (str): identifies the delivery that was settled.
             state (proton.DispositionType): specifies the final outcome of
                 the message transfer.
             disposition (proton.Disposition): the message disposition
@@ -154,16 +153,16 @@ class BasePublisher:
             None
         """
         if state == Disposition.ACCEPTED:
-            self.on_accepted(delivery, self.backend.get(delivery.tag),
+            self.on_accepted(delivery, self.backend.get(tag),
                 disposition)
         if state == Disposition.REJECTED:
-            self.on_rejected(delivery, self.backend.get(delivery.tag),
+            self.on_rejected(delivery, self.backend.get(tag),
                 disposition)
         if state == Disposition.RELEASED:
-            self.on_released(delivery, self.backend.get(delivery.tag),
+            self.on_released(delivery, self.backend.get(tag),
                 disposition)
         if state == Disposition.MODIFIED:
-            self.on_modified(delivery, self.backend.get(delivery.tag),
+            self.on_modified(delivery, self.backend.get(tag),
                 disposition)
 
     def on_accepted(self, delivery, message, disposition):
