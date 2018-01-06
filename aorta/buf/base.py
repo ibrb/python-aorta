@@ -64,3 +64,6 @@ class BaseBuffer:
             None
         """
         raise NotImplementedError
+
+    def __len__(self):
+        raise NotImplementedError
