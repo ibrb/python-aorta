@@ -30,6 +30,6 @@ class BaseBufferTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.buf.put(None)
 
-    def test_queue_raises_notimplementederror(self):
+    def test_enqueue_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
-            self.buf.queue(None, None, None)
+            self.buf.enqueue(None, None, None)

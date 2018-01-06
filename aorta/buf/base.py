@@ -6,6 +6,10 @@ class BaseBuffer:
     implementations.
     """
 
+    def now(self):
+        tzinfo = datetime.timezone(datetime.timedelta(hours=0))
+        return datetime.datetime.utcnow().replace(tzinfo=tzinfo)
+
     def delay(self, delay=None):
         """Return a tuple containing two :class:`datetime.datetime`
         objects, representing the queued-at time and no-transmission-before
@@ -13,17 +17,16 @@ class BaseBuffer:
         """
         assert (delay or 0) >= 0,\
             "`delay` must be a positive integer"
-        tzinfo = datetime.timezone(datetime.timedelta(hours=0))
-        qat = nbf = datetime.datetime.utcnow().replace(tzinfo=tzinfo)
+        qat = nbf = self.now()
         if delay:
             nbf += datetime.timedelta(seconds=delay)
         return qat, nbf
 
     def put(self, message, delay=None):
         """Place a new message on the message queue."""
-        return self.queue(message, *self.delay(delay))
+        return self.enqueue(message, *self.delay(delay))
 
-    def queue(self, message, qat, nbf):
+    def enqueue(self, message, qat, nbf):
         """Queue a new message for transmission.
 
         Args:
