@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import os
 import uuid
@@ -111,6 +112,16 @@ class BaseBuffer:
             None
         """
         raise NotImplementedError
+
+    @contextlib.contextmanager
+    def transaction(self):
+        """Start a transaction. The default implementation does nothing;
+        :class:`BaseBuffer` implementations should define their own
+        transactional behavior. It is assumed that the transaction
+        begins when the context manager yields, commits when the context
+        is exited, and rollbacks when an exception occurs.
+        """
+        yield
 
     def __len__(self):
         raise NotImplementedError
