@@ -22,10 +22,6 @@ class BaseBufferTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.buf.pop()
 
-    def test_on_transmitted_raises_notimplementederror(self):
-        with self.assertRaises(NotImplementedError):
-            self.buf.on_transmitted(None, None)
-
     def test_put_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
             self.buf.put(None)

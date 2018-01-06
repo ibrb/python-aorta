@@ -127,23 +127,6 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
-    def on_transmitted(self, delivery, message):
-        """Assumed to be invoked when the sender has transmitted
-        the AMQP message to the remote and received a delivery
-        tag i.e. immediately after the :meth:`proton.Sender.send()`
-        call.
-
-        Args:
-            delivery: a :class:`proton.Delivery` instance representing
-                the transfer.
-            message: a :class:`proton.Message` instance containing the
-                AMQP message.
-
-        Returns:
-            None
-        """
-        raise NotImplementedError
-
     @contextlib.contextmanager
     def transaction(self):
         """Start a transaction. The default implementation does nothing;
