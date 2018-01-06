@@ -85,18 +85,31 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
-    def transfer(self, sender):
+    def transfer(self, host, source, target, sender):
         """Transmit the next message in the queue to the AMQP remote
         peer.
 
         Args:
+            host (str): a string in the format ``host:port`` identifying
+                the remote AMQP peer.
+            source (str): the name of the source (local) container.
+            target (str): the name of the target (remote) container.
             sender (proton.Sender): the link over which the message will
                 be sent.
 
         Returns:
             None
         """
-        raise NotImplementedError
+        addr, port = host.split(':')
+        assert port.isdigit(), "Invalid host: %s" % host
+        with self.transaction():
+            message = self.pop()
+            if message is None:
+                return
+
+            delivery = sender.send(self.pop(), self.generate_tag())
+            self.track(host, port, source, target, sender.name,
+                delivery.tag, message)
 
     def on_transmitted(self, delivery, message):
         """Assumed to be invoked when the sender has transmitted
