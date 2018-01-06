@@ -37,3 +37,7 @@ class BaseBufferTestCase(unittest.TestCase):
     def test_len_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
             len(self.buf)
+
+    def test_transfer_raises_notimplementederror(self):
+        with self.assertRaises(NotImplementedError):
+            self.buf.transfer(None)

@@ -73,6 +73,19 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
+    def transfer(self, sender):
+        """Transmit the next message in the queue to the AMQP remote
+        peer.
+
+        Args:
+            sender (proton.Sender): the link over which the message will
+                be sent.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
+
     def on_transmitted(self, delivery, message):
         """Assumed to be invoked when the sender has transmitted
         the AMQP message to the remote and received a delivery
