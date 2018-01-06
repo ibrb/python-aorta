@@ -170,8 +170,8 @@ class BasePublisher:
         """Invoked when the remote has indicated that it accepts the message.
 
         Args:
-            delivery (proton.Delivery): described the final state of the
-                message tranfer.
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
             message (proton.Message): the AMQP message.
             disposition (proton.Disposition): the message disposition
                 describing the remote outcome
@@ -196,7 +196,7 @@ class BasePublisher:
         or otherwise unprocessable by the remote.
 
         Args:
-            delivery (proton.Delivery): described the final state of the
+            delivery (proton.Delivery): describes the final state of the
                 message transfer.
             message (proton.Message): the AMQP message.
             disposition (proton.Disposition): the message disposition
@@ -230,7 +230,7 @@ class BasePublisher:
         allow for delivery to an alternative consumer)."*
 
         Args:
-            delivery (proton.Delivery): described the final state of the
+            delivery (proton.Delivery): describes the final state of the
                 message transfer.
             message (proton.Message): the AMQP message.
             disposition (proton.Disposition): the message disposition
@@ -251,7 +251,7 @@ class BasePublisher:
         ways at the node."
 
         Args:
-            delivery (proton.Delivery): described the final state of the
+            delivery (proton.Delivery): describes the final state of the
                 message transfer.
             message (proton.Message): the AMQP message.
             disposition (proton.Disposition): the message disposition
