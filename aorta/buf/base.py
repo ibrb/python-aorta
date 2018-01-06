@@ -22,6 +22,8 @@ class BaseBuffer:
         container of the source node is A, and the container of the target
         node is B, the link may be globally identified by the (ordered)
         tuple (A,B,<name>)."*
+    -   :class:`BaseBuffer` implementations assume that container ids
+        a globally unique in the AMQP network.
     -   :class:`BaseBuffer` also assumes that the ``delivery-tag`` on
         message transfers is **globally** unique. This deviates from the
         AMQP 1.0 specification, section 2.6.12, which only states *"Each
