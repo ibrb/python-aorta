@@ -33,3 +33,7 @@ class BaseBufferTestCase(unittest.TestCase):
     def test_enqueue_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
             self.buf.enqueue(None, None, None)
+
+    def test_len_raises_notimplementederror(self):
+        with self.assertRaises(NotImplementedError):
+            len(self.buf)
