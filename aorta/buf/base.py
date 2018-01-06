@@ -1,4 +1,6 @@
 import datetime
+import os
+import uuid
 
 
 class BaseBuffer:
@@ -31,7 +33,14 @@ class BaseBuffer:
         store.
     """
 
+    def generate_tag(self):
+        """Generates a globally unique delivery tag."""
+        return uuid.UUID(bytes=os.urandom(16)).hex
+
     def now(self):
+        """Return an aware :class:`datetime.datetime` instance
+        representing the current date and time.
+        """
         tzinfo = datetime.timezone(datetime.timedelta(hours=0))
         return datetime.datetime.utcnow().replace(tzinfo=tzinfo)
 
