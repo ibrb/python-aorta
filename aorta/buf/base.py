@@ -44,7 +44,7 @@ class BaseBuffer:
             "`delay` must be a positive integer"
         qat = nbf = self.now()
         if delay:
-            nbf += datetime.timedelta(seconds=delay)
+            nbf += datetime.timedelta(seconds=(delay/1000))
         return qat, nbf
 
     def put(self, message, delay=None):

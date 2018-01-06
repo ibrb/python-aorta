@@ -14,7 +14,7 @@ class BaseBufferTestCase(unittest.TestCase):
         self.assertEqual(qat, nbf)
 
     def test_delay_returns_added_datetimes(self):
-        qat, nbf = self.buf.delay(300)
+        qat, nbf = self.buf.delay(300000)
         self.assertLess(qat, nbf)
         self.assertEqual(qat, nbf - datetime.timedelta(seconds=300))
 
