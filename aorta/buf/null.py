@@ -7,10 +7,19 @@ class NullBuffer(BaseBuffer):
     threadsafe.
     """
 
+    @property
+    def failed(self):
+        return len(self._errors)
+
+    @property
+    def queued(self):
+        return len(self._queue)
+
     def __init__(self, *args, **kwargs):
         super(BaseBuffer, self).__init__(*args, **kwargs)
         self._queue = []
         self._deliveries = {}
+        self._errors = {}
 
     def enqueue(self, message, qat, nbf):
         """Queue a new message for transmission.
@@ -54,6 +63,20 @@ class NullBuffer(BaseBuffer):
             None
         """
         self._deliveries[tag] = message
+
+    def error(self, tag, message, undeliverable=False):
+        """Invoked when a message could not be delivered.
+
+        Args:
+            tag (str): identifies the delivey.
+            message (proton.Message): the message that errored.
+            undeliverable (bool): indicates if the message was
+                undeliverable.
+
+        Returns:
+            None
+        """
+        self._errors[tag] = message
 
     def __len__(self):
         return len(self._queue)

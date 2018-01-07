@@ -35,6 +35,13 @@ class BaseBuffer:
         different links in different processes, but using the same data
         store.
     """
+    initial_backoff = 5.0
+
+    def backoff(self, n):
+        """Calculate the delay in microsecond how long a message must be
+        held before being retransmitted.
+        """
+        return self.initial_backoff * (1.25**n)
 
     def generate_tag(self):
         """Generates a globally unique delivery tag."""
@@ -85,11 +92,9 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
-
-
     def transfer(self, host, source, target, sender):
         """Transmit the next message in the queue to the AMQP remote
-        peer.
+        peer. Return the delivery tag.
 
         Args:
             host (str): a string in the format ``host:port`` identifying
@@ -100,8 +105,11 @@ class BaseBuffer:
                 be sent.
 
         Returns:
-            None
+            str
         """
+        if not sender.credit:
+            return None
+
         addr, port = host.split(':')
         assert port.isdigit(), "Invalid host: %s" % host
         with self.transaction():
@@ -115,6 +123,8 @@ class BaseBuffer:
             assert delivery.tag == tag
             self.track(host, port, source, target, sender.name,
                 delivery.tag, message)
+
+        return tag
 
     def track(self, host, port, source, target, link, tag, message):
         """Track the delivery of `message` to the AMQP remote peer.
@@ -136,6 +146,119 @@ class BaseBuffer:
         is exited, and rollbacks when an exception occurs.
         """
         yield
+
+    def on_accepted(self, delivery, message, disposition):
+        """Invoked when the remote has indicated that it accepts the message.
+
+        Args:
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
+            message (proton.Message): the AMQP message.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome
+
+        Returns:
+            None
+        """
+        pass
+
+    def on_rejected(self, delivery, message):
+        """Invoked when the remote has terminated the transfer with the
+        ``REJECTED`` outcome.
+
+        The rejected outcome is described in the AMQP 1.0 specification,
+        section 3.4.3: *"At the target, the rejected outcome is used to
+        indicate that an incoming message is invalid and therefore
+        unprocessable. The rejected outcome when applied to a message
+        will cause the delivery-count to be incremented in the header of
+        the rejected message."*
+
+        This outcome indicates that the message was semantically invalid
+        or otherwise unprocessable by the remote.
+
+        Args:
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
+            message (proton.Message): the AMQP message.
+
+        Returns:
+            None
+        """
+        message.delivery_count += 1
+        self.error(delivery.tag, message)
+
+    def on_released(self, delivery, message):
+        """Invoked when the remote decides to release a message. Requeue
+        message transmission with a delay of :attr:`retransmission_delay`
+        seconds.
+
+        Section 3.4.4 of the AMQP 1.0 specification states about the
+        ``RELEASED`` outcome: *"At the source the released outcome means
+        that the message is no longer acquired by the receiver, and has
+        been made available for (re-)delivery to the same or other targets
+        receiving from the node. The message is unchanged at the node (i.e.,
+        the delivery-count of the header of the released message MUST NOT be
+        incremented). As released is a terminal outcome, transfer of payload
+        data will not be able to be resumed if the link becomes suspended. A
+        delivery can become released at the source even before all transfer
+        frames have been sent. This does not imply that the remaining
+        transfers for the delivery will not be sent. The source MAY
+        spontaneously attain the released outcome for a message (for example
+        the source might implement some sort of time-bound acquisition lock,
+        after which the acquisition of a message at a node is revoked to
+        allow for delivery to an alternative consumer)."*
+
+        Args:
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
+            message (proton.Message): the AMQP message.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome.
+
+        Returns:
+            None
+        """
+        self.put(message, delay=self.backoff(message.delivery_count))
+
+    def on_modified(self, delivery, message, disposition):
+        """Invoked when the remote modified the message.
+
+        Section 3.4.5. of the AMQP 1.0 specification describes the
+        ``MODIFIED`` outcome: *"At the target, the modified outcome is
+        used to indicate that a given transfer was not and will not be
+        acted upon, and that the message SHOULD be modified in the specified
+        ways at the node."
+
+        Args:
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
+            message (proton.Message): the AMQP message.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome.
+
+        Returns:
+            None
+        """
+        message.delivery_count += 1
+        if disposition.undeliverable:
+            self.error(delivery.tag, message, undeliverable=True)
+            return
+
+        self.put(message, delay=self.backoff(message.delivery_count))
+
+    def error(self, tag, message, undeliverable=False):
+        """Invoked when a message could not be delivered.
+
+        Args:
+            tag (str): identifies the delivey.
+            message (proton.Message): the message that errored.
+            undeliverable (bool): indicates if the message was
+                undeliverable.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
 
     def __len__(self):
         raise NotImplementedError
