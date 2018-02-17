@@ -36,6 +36,7 @@ class SpooledBuffer(BaseBuffer):
 
         # Ensure that the rejected and undeliverable folders
         # exist.
+        os.makedirs(self._spool, exist_ok=True)
         os.makedirs(self.abspath('rejected'), exist_ok=True)
         os.makedirs(self.abspath('undeliverable'), exist_ok=True)
         os.makedirs(self.abspath('deliveries'), exist_ok=True)
