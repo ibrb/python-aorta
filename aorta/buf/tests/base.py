@@ -178,7 +178,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(message.delivery_count, count + 1)
 
     def test_on_modified_does_not_increase_failed_count(self):
@@ -189,7 +190,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(self.buf.failed, 0)
 
     def test_on_modified_requeues_message(self):
@@ -200,7 +202,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(self.buf.queued, 1)
 
     def test_on_modified_undeliverable_does_increase_delivery_count(self):
@@ -212,7 +215,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(message.delivery_count, count + 1)
 
     def test_on_modified_undeliverable_does_increase_failed_count(self):
@@ -223,7 +227,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(self.buf.failed, 1)
 
     def test_on_modified_undeliverable_does_not_requeue_message(self):
@@ -234,11 +239,13 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
+        self.buf.on_modified(Delivery(tag, self.sender),
+            message, disposition)
         self.assertEqual(self.buf.queued, 0)
 
     def test_on_accepted_removes_delivery(self):
         """The failed count must not increase when a message is released."""
+        disposition = Disposition(undeliverable=True)
         m1 = self.random_message()
         m2 = self.random_message()
         self.buf.put(m1)
@@ -251,6 +258,9 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
             self.sender)
 
         self.assertEqual(self.buf.deliveries, 2)
+        self.buf.on_accepted(Delivery(tag, self.sender),
+            self.buf.get(tag), disposition)
+        self.assertEqual(self.buf.deliveries, 1)
 
     def test_get_by_tag_returns_correct_message(self):
         m1 = self.random_message()

@@ -82,6 +82,21 @@ class NullBuffer(BaseBuffer):
         """
         self._deliveries[tag] = message
 
+    def on_accepted(self, delivery, message, disposition):
+        """Invoked when the remote has indicated that it accepts the message.
+
+        Args:
+            delivery (proton.Delivery): describes the final state of the
+                message transfer.
+            message (proton.Message): the AMQP message.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome
+
+        Returns:
+            None
+        """
+        self._deliveries.pop(delivery.tag)
+
     def error(self, tag, message, undeliverable=False):
         """Invoked when a message could not be delivered.
 

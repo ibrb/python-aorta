@@ -166,7 +166,7 @@ class BaseBuffer:
         Returns:
             None
         """
-        pass
+        raise NotImplementedError
 
     def on_rejected(self, delivery, message):
         """Invoked when the remote has terminated the transfer with the
