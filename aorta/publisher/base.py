@@ -5,7 +5,7 @@ import uuid
 from proton import Disposition
 
 from aorta.lib import timezone
-from aorta.storage.null import NullOutboundBuffer
+from aorta.buf.null import NullBuffer
 
 
 class BasePublisher:
@@ -18,9 +18,11 @@ class BasePublisher:
     """
     retransmission_delay = 5.0
 
-    def __init_(self, backend=None, logger=None):
+    def __init__(self, backend=None, logger=None):
         self.logger = logger or logging.getLogger('aorta.publisher')
-        self.backend = backend or NullOutboundBuffer()
+        self.backend = backend
+        if self.backend is None:
+            self.backend = NullBuffer()
 
     def delay(self, n):
         """Calculates the delay in seconds before retransmitting a

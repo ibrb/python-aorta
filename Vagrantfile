@@ -11,14 +11,14 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "docker" do |docker|
     docker.vm.network "private_network", ip: "192.168.33.10"
-    docker.vm.box = "centos/7"
+    docker.vm.box = "bento/centos-7.4"
     docker.vm.provider "virtualbox" do |vb|
       vb.memory = "512"
     end
     docker.vm.provision "shell", inline: <<-SHELL
       yum install -y epel-release
       yum install -y https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-redhat96-9.6-3.noarch.rpm
-      yum update
+      yum update -y
       yum install -y postgresql96-server postgresql96-contrib
       yum install -y yum-utils device-mapper-persistent-data lvm2 wget
       yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo

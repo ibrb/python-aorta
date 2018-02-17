@@ -36,9 +36,9 @@ class SpooledBuffer(BaseBuffer):
 
         # Ensure that the rejected and undeliverable folders
         # exist.
-        os.makedirs(self.abspath('rejected'))
-        os.makedirs(self.abspath('undeliverable'))
-        os.makedirs(self.abspath('deliveries'))
+        os.makedirs(self.abspath('rejected'), exist_ok=True)
+        os.makedirs(self.abspath('undeliverable'), exist_ok=True)
+        os.makedirs(self.abspath('deliveries'), exist_ok=True)
 
     def abspath(self, *args):
         """Return the absolute path in the spool directory."""
