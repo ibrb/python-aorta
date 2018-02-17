@@ -90,6 +90,14 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         self.buf.transfer('127.0.0.1:8000', 'local', 'remote', self.sender)
         self.assertEqual(n - 1, len(self.buf))
 
+    def test_transfer_increases_deliveries(self):
+        """transfer() removes one message from the queue."""
+        self.buf.put(self.random_message())
+        n = self.buf.deliveries
+
+        self.buf.transfer('127.0.0.1:8000', 'local', 'remote', self.sender)
+        self.assertEqual(n + 1, self.buf.deliveries)
+
     def test_transfer_handles_no_message_correctly(self):
         """transfer() must gracefully handle empty queue."""
         self.assertEqual(self.buf.queued, 0)

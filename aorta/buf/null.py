@@ -12,6 +12,10 @@ class NullBuffer(BaseBuffer):
         return len(self._errors)
 
     @property
+    def deliveries(self):
+        return len(self._deliveries)
+
+    @property
     def queued(self):
         return len(self._queue)
 
