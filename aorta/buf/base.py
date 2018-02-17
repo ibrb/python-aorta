@@ -118,7 +118,7 @@ class BaseBuffer:
                 return
 
             tag = self.generate_tag()
-            delivery = sender.send(self.pop(), tag)
+            delivery = sender.send(message, tag)
 
             assert delivery.tag == tag
             self.track(host, port, source, target, sender.name,
