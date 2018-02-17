@@ -57,7 +57,13 @@ class NullBuffer(BaseBuffer):
         """Track the delivery of `message` to the AMQP remote peer.
 
         Args:
-
+            host (str): IP address of the AMQP peer.
+            port (int): port at which the AMQP peer is listening.
+            source (str): source name, if applicable.
+            target (str): target name, if applicable.
+            link (str): link identifier.
+            tag (str): unique delivery tag.
+            message (proton.Message): the AMQP message.
 
         Returns:
             None

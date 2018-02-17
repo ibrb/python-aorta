@@ -1,7 +1,8 @@
 import contextlib
-import datetime
 import os
 import uuid
+
+import aorta.lib.timezone
 
 
 class BaseBuffer:
@@ -35,35 +36,34 @@ class BaseBuffer:
         different links in different processes, but using the same data
         store.
     """
-    initial_backoff = 5.0
+    initial_backoff = 5000
 
     def backoff(self, n):
         """Calculate the delay in microsecond how long a message must be
         held before being retransmitted.
         """
-        return self.initial_backoff * (1.25**n)
+        return int(self.initial_backoff * (1.25**n))
 
     def generate_tag(self):
         """Generates a globally unique delivery tag."""
         return uuid.UUID(bytes=os.urandom(16)).hex
 
     def now(self):
-        """Return an aware :class:`datetime.datetime` instance
-        representing the current date and time.
+        """Return an aware :class:`int` instance representing the
+        current date and time in milliseconds since the UNIX epoch.
         """
-        tzinfo = datetime.timezone(datetime.timedelta(hours=0))
-        return datetime.datetime.utcnow().replace(tzinfo=tzinfo)
+        return aorta.lib.timezone.now()
 
     def delay(self, delay=None):
-        """Return a tuple containing two :class:`datetime.datetime`
-        objects, representing the queued-at time and no-transmission-before
-        time.
+        """Return a tuple containing two integers representing the
+        queued-at time and no-transmission-before time in milliseconds
+        since the UNIX epoch.
         """
         assert (delay or 0) >= 0,\
             "`delay` must be a positive integer"
         qat = nbf = self.now()
         if delay:
-            nbf += datetime.timedelta(seconds=(delay/1000))
+            nbf += delay
         return qat, nbf
 
     def put(self, message, delay=None):
@@ -75,9 +75,9 @@ class BaseBuffer:
 
         Args:
             message (proton.Message): the message to enqueue.
-            qat (datetime.datetime): the date and time at which
+            qat (int): the date and time at which
                 the message was queued.
-            nbf (datetime.datetime): the date and time before which
+            nbf (int): the date and time before which
                 the message may not be transmitted.
 
         Returns:
