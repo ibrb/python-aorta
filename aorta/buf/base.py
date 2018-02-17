@@ -253,7 +253,10 @@ class BaseBuffer:
             tag (str): identifies the delivey.
             message (proton.Message): the message that errored.
             undeliverable (bool): indicates if the message was
-                undeliverable.
+                undeliverable. If `undeliverable` is ``False``,
+                the message was rejected by the remote, it this
+                parameter is ``True``, it could not be delivered
+                to the remote.
 
         Returns:
             None
