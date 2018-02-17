@@ -229,6 +229,17 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
         self.assertEqual(self.buf.queued, 0)
 
+    def test_ordering_is_preserved(self):
+        m1 = self.random_message()
+        m2 = self.random_message()
+        m3 = self.random_message()
+        self.buf.put(m1)
+        self.buf.put(m2)
+        self.buf.put(m3)
+        self.assertEqual(self.buf.pop().id, m1.id)
+        self.assertEqual(self.buf.pop().id, m2.id)
+        self.assertEqual(self.buf.pop().id, m3.id)
+
 
 Disposition = collections.namedtuple('Disposition', ['undeliverable'])
 
