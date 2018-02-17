@@ -25,6 +25,14 @@ class NullBuffer(BaseBuffer):
         self._deliveries = {}
         self._errors = {}
 
+    def get(self, tag):
+        """Return a :class:`proton.Message` instance by its
+        delivery tag.
+        """
+        if tag not in self._deliveries:
+            raise LookupError
+        return self._deliveries[tag]
+
     def enqueue(self, message, qat, nbf):
         """Queue a new message for transmission.
 

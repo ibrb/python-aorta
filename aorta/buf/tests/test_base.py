@@ -22,6 +22,10 @@ class BaseBufferTestCase(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             self.buf.pop()
 
+    def test_get_raises_notimplementederror(self):
+        with self.assertRaises(NotImplementedError):
+            self.buf.get(None)
+
     def test_put_raises_notimplementederror(self):
         with self.assertRaises(NotImplementedError):
             self.buf.put(None)

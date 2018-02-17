@@ -70,6 +70,12 @@ class BaseBuffer:
         """Place a new message on the message queue."""
         return self.enqueue(message, *self.delay(delay))
 
+    def get(self, tag):
+        """Return a :class:`proton.Message` instance by its
+        delivery tag.
+        """
+        raise NotImplementedError
+
     def enqueue(self, message, qat, nbf):
         """Queue a new message for transmission.
 

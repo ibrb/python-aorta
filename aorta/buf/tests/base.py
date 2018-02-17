@@ -237,6 +237,34 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         self.buf.on_modified(Delivery(tag, self.sender), message, disposition)
         self.assertEqual(self.buf.queued, 0)
 
+    def test_on_accepted_removes_delivery(self):
+        """The failed count must not increase when a message is released."""
+        m1 = self.random_message()
+        m2 = self.random_message()
+        self.buf.put(m1)
+        self.buf.put(m2)
+
+        # Transfer both messages, deliveries must be 2
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+        self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+
+        self.assertEqual(self.buf.deliveries, 2)
+
+    def test_get_by_tag_returns_correct_message(self):
+        m1 = self.random_message()
+        self.buf.put(m1)
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+
+        m2 = self.buf.get(tag)
+        self.assertEqual(m1.id, m2.id)
+
+    def test_unknown_tag_raises_lookuperror(self):
+        with self.assertRaises(LookupError):
+            self.buf.get('foo')
+
     def test_ordering_is_preserved(self):
         m1 = self.random_message()
         m2 = self.random_message()
