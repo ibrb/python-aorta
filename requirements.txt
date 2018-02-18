@@ -1,2 +1,2 @@
-python-qpid-proton
-pytz
+python-qpid-proton==0.17.0
+pytz==2018.3

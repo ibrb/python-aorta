@@ -1,3 +1,4 @@
 
 
 APROP_MESSAGE_CLASS = 'amc'
+APROP_OBJECT_TYPE   = 'sqot'

@@ -22,6 +22,10 @@ class AortaMessage(Message):
             "%s.message_class is None" % type(self).__name__
         self.properties[aorta.const.APROP_MESSAGE_CLASS] = self.message_class
 
+    def set_object_type(self, name):
+        """Sets the object type in the application properties."""
+        self.properties[aorta.const.APROP_OBJECT_TYPE] = name
+
 
 class EventMessage(AortaMessage):
     message_class = 'event'

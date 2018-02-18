@@ -88,7 +88,7 @@ class BasePublisher:
         message.delivery_count = 0
 
         if not message.creation_time:
-            message.creation_time = timezone.now()
+            message.creation_time = timezone.now()/1000
         message.creation_time = int(message.creation_time)
 
         if message.id is None:
