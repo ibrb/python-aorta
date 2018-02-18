@@ -19,7 +19,7 @@ parser.add_argument('--spool', type=os.path.abspath, default='/var/spool/aorta',
 parser.add_argument('--loglevel', default='INFO',
     choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
     help="specifies the logging verbosity (default: %(default)s)")
-parser.add_argument('--ingress-channel', default='aorta.messages.ingress',
+parser.add_argument('--ingress-channel', default='aorta.ingress',
     help="the ingress message channel at the AMQP peer (default: %(default)s)")
 
 
