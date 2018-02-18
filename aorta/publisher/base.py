@@ -17,19 +17,12 @@ class BasePublisher:
             implementation that is used to persist messages until the
             remote AMQP peer accepts them.
     """
-    retransmission_delay = 5.0
 
     def __init__(self, backend=None, logger=None):
         self.logger = logger or logging.getLogger('aorta.publisher')
         self.backend = backend
         if self.backend is None:
             self.backend = NullBuffer()
-
-    def delay(self, n):
-        """Calculates the delay in seconds before retransmitting a
-        message, based on the delivery count.
-        """
-        return int(self.retransmission_delay*(1.25**n))
 
     def clean_properties(self, message):
         """Hook to validate the application properties of an AMQP
@@ -108,12 +101,14 @@ class BasePublisher:
         # should never fail in production environments, however.
         assert isinstance(message.creation_time, (int,float)),\
             repr(message.creation_time)
-        assert isinstance(message.id, uuid.UUID), repr(message.id)
-        assert isinstance(message.correlation_id, uuid.UUID),\
+        assert isinstance(message.id, (uuid.UUID,str)), repr(message.id)
+        assert isinstance(message.correlation_id, (uuid.UUID,str)),\
             repr(message.correlation_id)
 
-        message.id = message.id.hex
-        message.correlation_id = message.correlation_id.hex
+        if not isinstance(message.id, str):
+            message.id = message.id.hex
+        if not isinstance(message.correlation_id, str):
+            message.correlation_id = message.correlation_id.hex
 
         # Run validation on the application properties. The default
         # implementation is expected to do nothing. Subclasses may
