@@ -4,6 +4,7 @@ import time
 import unittest
 import uuid
 
+from proton import Disposition
 from proton import Message
 
 from aorta.lib import timezone
@@ -15,6 +16,10 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
     """
     __test__ = False
     message_classes = (Message,)
+    ACCEPTED = Disposition.ACCEPTED
+    REJECTED = Disposition.REJECTED
+    RELEASED = Disposition.RELEASED
+    MODIFIED = Disposition.MODIFIED
 
     def setUp(self):
         self.sender = MockSender()
@@ -90,6 +95,16 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         self.buf.transfer('127.0.0.1:8000', 'local', 'remote', self.sender)
         self.assertEqual(n - 1, len(self.buf))
 
+    def test_transfer_sets_channel(self):
+        """transfer() removes one message from the queue."""
+        self.buf.put(self.random_message())
+        n = len(self.buf)
+
+        tag = self.buf.transfer('127.0.0.1:8000', 'local', 'remote', self.sender,
+            channel='foo')
+        m = self.buf.get(tag)
+        self.assertEqual(m.address, 'foo')
+
     def test_transfer_increases_deliveries(self):
         """transfer() removes one message from the queue."""
         self.buf.put(self.random_message())
@@ -116,7 +131,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
             self.sender)
         count = message.delivery_count
 
-        self.buf.on_rejected(Delivery(tag, self.sender), message)
+        self.buf.on_rejected(Delivery(tag, self.sender), message,
+            Disposition(False))
         self.assertEqual(message.delivery_count, count + 1)
 
     def test_on_rejected_increases_failed_count(self):
@@ -126,7 +142,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_rejected(Delivery(tag, self.sender), message)
+        self.buf.on_rejected(Delivery(tag, self.sender), message,
+            Disposition(False))
         self.assertEqual(self.buf.failed, 1)
 
     def test_on_rejected_does_not_requeue_message(self):
@@ -136,7 +153,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_rejected(Delivery(tag, self.sender), message)
+        self.buf.on_rejected(Delivery(tag, self.sender), message,
+            Disposition(False))
         self.assertEqual(self.buf.queued, 0)
 
     def test_on_release_does_not_increase_delivery_count(self):
@@ -147,7 +165,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_released(Delivery(tag, self.sender), message)
+        self.buf.on_released(Delivery(tag, self.sender), message,
+            Disposition(False))
         self.assertEqual(message.delivery_count, count)
 
     def test_on_release_does_not_increase_failed_count(self):
@@ -157,7 +176,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_released(Delivery(tag, self.sender), message)
+        self.buf.on_released(Delivery(tag, self.sender), message,
+            Disposition(False))
         self.assertEqual(self.buf.failed, 0)
 
     def test_on_release_requeues_message(self):
@@ -167,7 +187,8 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
             self.sender)
 
-        self.buf.on_released(Delivery(tag, self.sender), message)
+        self.buf.on_released(Delivery(tag, self.sender), message,
+            Disposition(False))
 
     def test_on_modified_does_increase_delivery_count(self):
         """The delivery count must increase when a message is modified."""
@@ -285,6 +306,42 @@ class BaseBufferImplementationTestCase(unittest.TestCase):
         self.assertEqual(self.buf.pop().id, m1.id)
         self.assertEqual(self.buf.pop().id, m2.id)
         self.assertEqual(self.buf.pop().id, m3.id)
+
+    def test_accepted_outcome(self):
+        m1 = self.random_message()
+        self.buf.put(m1)
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+        delivery = Delivery(tag=tag, link=self.sender)
+        self.buf.on_settled(delivery, self.ACCEPTED,
+            Disposition(False))
+
+    def test_rejected_outcome(self):
+        m1 = self.random_message()
+        self.buf.put(m1)
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+        delivery = Delivery(tag=tag, link=self.sender)
+        self.buf.on_settled(delivery, self.REJECTED,
+            Disposition(False))
+
+    def test_released_outcome(self):
+        m1 = self.random_message()
+        self.buf.put(m1)
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+        delivery = Delivery(tag=tag, link=self.sender)
+        self.buf.on_settled(delivery, self.RELEASED,
+            Disposition(False))
+
+    def test_modified_outcome(self):
+        m1 = self.random_message()
+        self.buf.put(m1)
+        tag = self.buf.transfer('127.0.0.1:5672', 'local','remote',
+            self.sender)
+        delivery = Delivery(tag=tag, link=self.sender)
+        self.buf.on_settled(delivery, self.MODIFIED,
+            Disposition(False))
 
 
 Disposition = collections.namedtuple('Disposition', ['undeliverable'])

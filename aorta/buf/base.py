@@ -228,7 +228,7 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
-    def on_rejected(self, delivery, message):
+    def on_rejected(self, delivery, message, disposition):
         """Invoked when the remote has terminated the transfer with the
         ``REJECTED`` outcome.
 
@@ -246,6 +246,8 @@ class BaseBuffer:
             delivery (proton.Delivery): describes the final state of the
                 message transfer.
             message (proton.Message): the AMQP message.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome.
 
         Returns:
             None
@@ -253,7 +255,7 @@ class BaseBuffer:
         message.delivery_count += 1
         self.error(delivery.tag, message)
 
-    def on_released(self, delivery, message):
+    def on_released(self, delivery, message, disposition):
         """Invoked when the remote decides to release a message. Requeue
         message transmission with a delay of :attr:`retransmission_delay`
         seconds.
