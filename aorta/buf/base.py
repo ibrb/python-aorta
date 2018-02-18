@@ -98,7 +98,7 @@ class BaseBuffer:
         """
         raise NotImplementedError
 
-    def transfer(self, host, source, target, sender):
+    def transfer(self, host, source, target, sender, channel=None):
         """Transmit the next message in the queue to the AMQP remote
         peer. Return the delivery tag.
 
@@ -109,6 +109,7 @@ class BaseBuffer:
             target (str): the name of the target (remote) container.
             sender (proton.Sender): the link over which the message will
                 be sent.
+            channel (str): specifies the remote address.
 
         Returns:
             str
@@ -122,6 +123,9 @@ class BaseBuffer:
             message = self.pop()
             if message is None:
                 return
+
+            if channel is not None:
+                message.address = channel
 
             tag = self.generate_tag()
             delivery = sender.send(message, tag)
