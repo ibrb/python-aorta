@@ -1,3 +1,6 @@
+import os
+import uuid
+
 import proton
 
 import aorta.const
@@ -17,7 +20,9 @@ class AortaMessage(Message):
     def __init__(self, *args, **kwargs):
         Message.__init__(self, *args, **kwargs)
         if not isinstance(self.properties, dict):
-            self.properties = {}
+            self.properties = {
+                aorta.const.APROP_AORTA_ID: uuid.UUID(bytes=os.urandom(16))
+            }
         assert self.message_class is not None,\
             "%s.message_class is None" % type(self).__name__
         self.properties[aorta.const.APROP_MESSAGE_CLASS] = self.message_class
