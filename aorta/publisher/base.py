@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 import uuid
@@ -55,7 +56,7 @@ class BasePublisher:
         """
         return message.properties
 
-    def publish(self, message):
+    def publish(self, message, on_settled=None):
         """Publish :class:`proton.Message` `message`. Set all properties
         required by the Aorta framework and forward the message to
         the persistence backend for outbound queueing.
@@ -74,6 +75,10 @@ class BasePublisher:
 
         Args:
             message: a :class:`proton.Message` instance.
+            on_settled: a callable that is invoked, with the message
+                as its first positional argument, when the durability
+                responsiblity is transferred from the caller to the
+                backend.
 
         Returns:
             None
@@ -117,4 +122,13 @@ class BasePublisher:
 
         # Place the message on the outbound message queue and have the
         # backend schedule it for transission to the remote AMQP peer.
-        self.backend.put(message)
+        if on_settled is not None:
+            on_settled = functools.partial(self.on_responsibility_transferred,
+                on_settled)
+        self.backend.put(message, on_settled=on_settled)
+
+    def on_responsibility_transferred(self, func, message):
+        """Invoke `func` when the responsibility regarding the persistence
+        of `message` is released from the caller.
+        """
+        func(message)

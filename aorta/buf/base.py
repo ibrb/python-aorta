@@ -68,9 +68,12 @@ class BaseBuffer:
             nbf += delay
         return qat, nbf
 
-    def put(self, message, delay=None):
+    def put(self, message, delay=None, on_settled=None):
         """Place a new message on the message queue."""
-        return self.enqueue(message, *self.delay(delay))
+        retval = self.enqueue(message, *self.delay(delay))
+        if callable(on_settled):
+            on_settled(message)
+        return retval
 
     def get(self, tag):
         """Return a :class:`proton.Message` instance by its
