@@ -107,6 +107,9 @@ class BasePublisher:
         assert isinstance(message.correlation_id, uuid.UUID),\
             repr(message.correlation_id)
 
+        message.id = message.id.hex
+        message.correlation_id = message.correlation_id.hex
+
         # Run validation on the application properties. The default
         # implementation is expected to do nothing. Subclasses may
         # override this method to implement domain-specific validation.
