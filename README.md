@@ -20,7 +20,11 @@ is at 100%.
 
 ## Security
 
-- Authentication is not implemented.
+- Authentication is not implemented. All producers/consumers that can connect
+  to the Aorta system are assumed to be allowed to do so, and that access control
+  is managed at the network (firewall) level.
+- We suggest mounting `/var/spool/aorta` on a separate (encrypted)
+  filesystem.
 
 ## Background
 
