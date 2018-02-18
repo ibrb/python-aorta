@@ -25,6 +25,9 @@ is at 100%.
   is managed at the network (firewall) level.
 - We suggest mounting `/var/spool/aorta` on a separate (encrypted)
   filesystem.
+- Implementors must ensure that the `/var/spool/aorta` directory is mounted
+  on a filesystem that does not lie when invoking `fsync()`.
+
 
 ## Background
 
