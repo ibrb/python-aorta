@@ -2,6 +2,8 @@ import contextlib
 import os
 import uuid
 
+from proton import Disposition
+
 import aorta.lib.timezone
 
 
@@ -156,6 +158,57 @@ class BaseBuffer:
         is exited, and rollbacks when an exception occurs.
         """
         yield
+
+    def on_settled(self, delivery, remote_state, disposition):
+        """Invoked when the AMQP peers agree on the state of a transfer.
+
+        A transfer has three possible final outcomes (terminal delivery
+        states):
+
+        -   ``ACCEPTED``
+        -   ``REJECTED``
+        -   ``RELEASED``
+        -   ``MODIFIED``
+
+        The ``ACCEPTED`` outcome means that the remote has accepted
+        the message and fullfills the conditions specified in the
+        message headers e.g. durability.
+
+        The ``REJECTED`` outcome means that the remote does not wish to handle
+        the AMQP message because it is invalid and/or unprocessable.
+
+        The ``RELEASED`` outcome indicates that the message was
+        not (and will not be) processed.
+
+        The ``MODIFIED`` outcome indicates that the message was modified,
+        but not processed.
+
+        For more information on terminal delivery states, consult the
+        documentation on their respective methods or the AMQP 1.0
+        specification, section 3.4.
+
+        Args:
+            delivery (proton.Delivery): represents the ongoing delivery.
+            remote_state (proton.DispositionType): specifies the
+                final outcome of the message transfer.
+            disposition (proton.Disposition): the message disposition
+                describing the remote outcome.
+
+        Returns:
+            None
+        """
+        if remote_state == Disposition.ACCEPTED:
+            self.on_accepted(delivery, self.get(delivery.tag),
+                disposition=disposition)
+        if remote_state == Disposition.REJECTED:
+            self.on_rejected(delivery, self.get(delivery.tag),
+                disposition=disposition)
+        if remote_state == Disposition.RELEASED:
+            self.on_released(delivery, self.get(delivery.tag),
+                disposition=disposition)
+        if remote_state == Disposition.MODIFIED:
+            self.on_modified(delivery, self.get(delivery.tag),
+                disposition=disposition)
 
     def on_accepted(self, delivery, message, disposition):
         """Invoked when the remote has indicated that it accepts the message.
