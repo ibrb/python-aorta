@@ -1,6 +1,6 @@
 import unittest
 
-from aorta.const import APROP_MESSAGE_CLASS
+from aorta.const import P_MESSAGE_CLASS
 from aorta.messaging import AortaMessage
 from aorta.messaging import EventMessage
 
@@ -20,4 +20,4 @@ class EventMessageTestCase(unittest.TestCase):
 
     def test_init_sets_amc_property(self):
         m = EventMessage()
-        self.assertEqual(m.properties[APROP_MESSAGE_CLASS], 'event')
+        self.assertEqual(m.properties[P_MESSAGE_CLASS], 'event')
