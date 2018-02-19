@@ -21,7 +21,7 @@ class AortaMessage(Message):
         Message.__init__(self, *args, **kwargs)
         if not isinstance(self.properties, dict):
             self.properties = {
-                aorta.const.APROP_AORTA_ID: uuid.UUID(bytes=os.urandom(16))
+                aorta.const.APROP_AORTA_ID: uuid.UUID(bytes=os.urandom(16)).hex
             }
         assert self.message_class is not None,\
             "%s.message_class is None" % type(self).__name__
