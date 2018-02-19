@@ -17,7 +17,7 @@ class EventPublisher(BasePublisher):
         buf = SpooledBuffer(spool=spool or os.getenv('AORTA_SPOOL_DIR'))
         BasePublisher.__init__(self, backend=buf)
 
-    def publish(self, name, params, on_settled=None, observed=None,
+    def publish(self, name, params=None, on_settled=None, observed=None,
         occurred=None):
         """Published a message representing observed event `name` with
         the given parameters `params`.
@@ -30,13 +30,32 @@ class EventPublisher(BasePublisher):
                 specifying the date and time at which the event was observed.
             occurred (int): the number of milliseconds since the UNIX epoch,
                 specifying the date and time at which the event occurred.
+            on_settled: a callback function that is invoked, with the
+                :class:`~aorta.messaging.EventMessage` as its first
+                positional argument, when durability responsibility
+                is transferred to the backend.
 
         Returns:
             None
+
+        The :meth:`publish()` method ensures that all properties and
+        annotations (refer to the AMQP 1.0 specification for their
+        meanings) required by the Aorta framework are set on each
+        outgoing message. For ``Event`` messages specifically,
+        :meth:`publish()` provides defaults for the following
+        properties:
+
+        - `aorta.const.P_EVENT_OBSERVED`
+        - `aorta.const.P_EVENT_OCCURRED`
+
+        This is in addition to the properties set by the :class:`EventPublisher`
+        superclasses.
+
+        It also guarantees that the message body is a :class:`dict`.
         """
         message = EventMessage()
         message.set_object_type(name)
-        message.body = params
+        message.body = params or {}
         message.properties[const.APROP_EVENT_OBSERVED] =\
             observed or timezone.now()
         message.properties[const.APROP_EVENT_OCCURRED] =\
