@@ -38,10 +38,10 @@ class MessagePublisher(MessagingHandler):
         # and alives.
         return [x for x in self.senders if x.credit]
 
-    def __init__(self, remotes, channel, spool='/var/spool/aorta'):
+    def __init__(self, remotes, channel, spool='/var/spool/aorta', buf=None):
         super(MessagePublisher, self).__init__(auto_settle=False)
         self.remotes = remotes
-        self.buf = SpooledBuffer(spool=spool)
+        self.buf = buf or SpooledBuffer(spool=spool)
         self.channel = channel
         self.senders = []
         self.must_stop = False
@@ -76,8 +76,7 @@ class MessagePublisher(MessagingHandler):
     def on_start(self, event):
         self.container = event.container
         for addr in self.remotes:
-            sender = event.container.create_sender(addr,
-                name='test.ibrb.io')
+            sender = event.container.create_sender(addr)
             self.senders.append(sender)
 
         event.container.selectable(self.injector)
@@ -115,31 +114,28 @@ class MessagePublisher(MessagingHandler):
             remote_state=event.delivery.remote_state,
             disposition=event.delivery.remote)
         event.delivery.settle()
-        print("Delivery %s was settled" % event.delivery.tag)
 
-    def flush(self, link, limit=1):
+    def flush(self, link, limit=20):
         # Ensure that we do not start sending messages if
         # we must stop.
         if self.must_stop:
             return
 
-        host = self.container.get_connection_address(link.connection)
-        tag = self.buf.transfer(host,
-            source=link.source.address,
-            target=link.target.address,
-            sender=link, channel=self.channel)
-        if tag is not None:
-            print("Offered %s" % tag)
+        for i in range(limit):
+            if not link.credit:
+                break
+            host = self.container.get_connection_address(link.connection)
+            tag = self.buf.transfer(host,
+                source=link.source.address,
+                target=link.target.address,
+                sender=link, channel=self.channel)
 
 
 def main(argv):
     args = parser.parse_args(argv)
     handler = MessagePublisher(args.peers,
         channel=args.ingress_channel, spool=args.spool)
-    try:
-        Container(handler, container_id='test.ibrb.io').run()
-    except KeyboardInterrupt:
-        pass
+    Container(handler).run()
 
 
 if __name__ == '__main__':
