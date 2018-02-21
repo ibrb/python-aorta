@@ -32,7 +32,7 @@ parser.add_argument('--ingress-channel', default='aorta.ingress',
 
 
 class MessagePublisher(MessagingHandler):
-    framerate = 10
+    framerate = 20
     target = 'aorta.ingress'
 
     @property
@@ -99,7 +99,9 @@ class MessagePublisher(MessagingHandler):
     def on_start(self, event):
         self.container = event.container
         for addr in self.remotes:
-            sender = event.container.create_sender(addr,
+            connection = event.container.connect(addr,
+                sasl_enabled=True)
+            sender = event.container.create_sender(connection,
                 target=self.target)
             self.senders.append(sender)
 
@@ -159,7 +161,7 @@ class MessagePublisher(MessagingHandler):
         self.logger.debug("Delivery %s settled (host: %s)",
             event.delivery.tag, self.get_peer_address(event.link))
 
-    def flush(self, link, limit=20):
+    def flush(self, link, limit=100):
         # Ensure that we do not start sending messages if
         # we must stop.
         if self.must_stop:
