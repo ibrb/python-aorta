@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import logging
 import os
 import random
 import signal
@@ -11,6 +12,7 @@ from proton.handlers import MessagingHandler
 from proton.reactor import ApplicationEvent
 from proton.reactor import Container
 from proton.reactor import EventInjector
+import proton
 
 from aorta.buf.spooled import SpooledBuffer
 
@@ -31,6 +33,7 @@ parser.add_argument('--ingress-channel', default='aorta.ingress',
 
 class MessagePublisher(MessagingHandler):
     framerate = 10
+    target = 'aorta.ingress'
 
     @property
     def sendables(self):
@@ -38,10 +41,13 @@ class MessagePublisher(MessagingHandler):
         # and alives.
         return [x for x in self.senders if x.credit]
 
-    def __init__(self, remotes, channel, spool='/var/spool/aorta', buf=None):
+    def __init__(self, remotes, channel, spool='/var/spool/aorta', buf=None,
+        loglevel='INFO'):
+        """Initialize a new :class:`MessagePublisher` instance."""
         super(MessagePublisher, self).__init__(auto_settle=False)
         self.remotes = remotes
         self.buf = buf or SpooledBuffer(spool=spool)
+        self.loglevel = getattr(logging, loglevel)
         self.channel = channel
         self.senders = []
         self.must_stop = False
@@ -52,6 +58,17 @@ class MessagePublisher(MessagingHandler):
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGHUP, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
+
+        # Conigure the logger to send everything to stdout.
+        self.logger = logging.getLogger()
+        self.loghandler = logging.StreamHandler(sys.stdout)
+        fmt = logging.Formatter(
+            "%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
+            datefmt="[%Y-%m-%d %H:%M:%S %z]")
+        self.loghandler.setFormatter(fmt)
+        self.logger.addHandler(self.loghandler)
+        self.loghandler.setLevel(self.loglevel)
+        self.logger.setLevel(self.loglevel)
 
     def signal_handler(self, signum, frame):
         """Invoked when the program receives an interrupt signal
@@ -76,7 +93,8 @@ class MessagePublisher(MessagingHandler):
     def on_start(self, event):
         self.container = event.container
         for addr in self.remotes:
-            sender = event.container.create_sender(addr)
+            sender = event.container.create_sender(addr,
+                target=self.target)
             self.senders.append(sender)
 
         event.container.selectable(self.injector)
@@ -107,13 +125,33 @@ class MessagePublisher(MessagingHandler):
         self.container.stop()
 
     def on_sendable(self, event):
-        self.flush(link=event.link)
+        link = event.link
+        peer = self.get_peer_address(link)
+        self.logger.debug(
+            "AMQP link sendable (target: %s, name: %s, host: %s, credit: %s)",
+            link.target.address, link.name, self.get_peer_address(link),
+            link.credit)
+        self.flush(link=link)
+
+    def on_accepted(self, event):
+        self.logger.debug("Delivery %s accepted (host: %s)",
+            event.delivery.tag, self.get_peer_address(event.link))
+
+    def on_rejected(self, event):
+        self.logger.debug("Delivery %s rejected (host: %s)",
+            event.delivery.tag, self.get_peer_address(event.link))
+
+    def on_released(self, event):
+        self.logger.debug("Delivery %s released (host: %s)",
+            event.delivery.tag, self.get_peer_address(event.link))
 
     def on_settled(self, event):
         self.buf.on_settled(delivery=event.delivery,
             remote_state=event.delivery.remote_state,
             disposition=event.delivery.remote)
         event.delivery.settle()
+        self.logger.debug("Delivery %s settled (host: %s)",
+            event.delivery.tag, self.get_peer_address(event.link))
 
     def flush(self, link, limit=20):
         # Ensure that we do not start sending messages if
@@ -130,11 +168,20 @@ class MessagePublisher(MessagingHandler):
                 target=link.target.address,
                 sender=link, channel=self.channel)
 
+    def get_peer_address(self, obj):
+        """Return the remote AMQP address and port for the given
+        :class:`proton.Link` or :class:`proton.Connection`.
+        """
+        if isinstance(obj, proton.Link):
+            obj = obj.connection
+        return self.container.get_connection_address(obj)
+
 
 def main(argv):
     args = parser.parse_args(argv)
     handler = MessagePublisher(args.peers,
-        channel=args.ingress_channel, spool=args.spool)
+        channel=args.ingress_channel, spool=args.spool,
+        loglevel=args.loglevel)
     Container(handler).run()
 
 
