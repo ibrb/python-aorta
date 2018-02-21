@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import tempfile
 
@@ -33,6 +34,8 @@ class SpooledBuffer(BaseBuffer):
 
     def __init__(self, spool='/var/spool/aorta'):
         self._spool = os.path.abspath(spool)
+        self.logger = logging.getLogger()
+        self.logger.info("Persisting in-transit messages to %s", spool)
 
         # Ensure that the rejected and undeliverable folders
         # exist.
