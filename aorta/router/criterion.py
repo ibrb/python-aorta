@@ -47,7 +47,8 @@ class Criterion(object):
         try:
             return getattr(dto, attname)
         except AttributeError:
-            return dto[attname]
+            return dto[attname] if isinstance(dto, dict)\
+                else None
 
     def parse_attribute(self, dto, path):
         fn = self.get
@@ -67,7 +68,6 @@ class Criterion(object):
         try:
             value = self.parse_attribute(dto, self.path)
         except (KeyError, AttributeError) as e:
-            print(e)
             raise UnknownField(self.path)
 
         try:
