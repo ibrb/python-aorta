@@ -77,8 +77,14 @@ class MessagePublisher(MessagingHandler):
         if signum == signal.SIGHUP:
             pass
         if signum in (signal.SIGINT, signal.SIGTERM):
-            self.must_stop = True
-            self.injector.trigger(ApplicationEvent('teardown'))
+            self.stop()
+
+    def stop(self):
+        """Stops sending messages to the AMQP remote and exit the
+        main event loop.
+        """
+        self.must_stop = True
+        self.injector.trigger(ApplicationEvent('teardown'))
 
     def main_event_loop(self):
         """Ensure that the :class:`MessagePublisher` keeps
