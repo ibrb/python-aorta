@@ -1,3 +1,4 @@
+import glob
 import logging
 
 import yaml
@@ -22,10 +23,16 @@ class Router(object):
 
     def load_config(self, path):
         """Loads a ruleset configuration from the given `path`."""
+        self.logger.debug("Loading routes from %s", path)
         with open(path, 'r') as f:
             rules, _ = self.schema.load(yaml.safe_load(f.read()))
         self.rules.extend(rules)
         self.config.append(path)
+
+    def glob_config(self, pattern):
+        """Glob `pattern` to find ruleset configurations."""
+        for path in glob.glob(pattern):
+            self.load_config(path)
 
     def get_possible_routes(self):
         """Return a set containing all possible routes for the current
