@@ -1,4 +1,8 @@
+import os
+import tempfile
 import unittest
+
+import yaml
 
 from aorta.router.schema import RuleSchema
 from aorta.router.base import Router
@@ -40,13 +44,16 @@ class RouterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.schema = RuleSchema(many=True)
-        rules, errors = self.schema.load(self.rules)
+        rules, errors = self.load_schema()
         assert not errors, repr(errors)
         self.router = Router(
             rules,
             always_route=["baz","taz"],
             sink="sink"
         )
+
+    def load_schema(self):
+        return self.schema.load(self.rules)
 
     def test_invalid_schema(self):
         rules, errors = self.schema.load([{'bla': 'foo'}])
@@ -96,6 +103,37 @@ class RouterTestCase(unittest.TestCase):
         })
         self.assertIn('sink', routes)
         self.assertEqual(len(routes), 1)
+
+
+# TODO: This is just pure lazyness
+class LoadFromPathRouterTestCase(RouterTestCase):
+
+    def setUp(self):
+        self.schema = RuleSchema(many=True)
+        self.router = Router(
+            always_route=["baz","taz"],
+            sink="sink"
+        )
+        with tempfile.NamedTemporaryFile('w') as f:
+            f.write(yaml.safe_dump(self.rules))
+            f.seek(0)
+            self.router.load_config(f.name)
+
+
+class LoadGlobRouterTestCase(RouterTestCase):
+
+    def setUp(self):
+        self.schema = RuleSchema(many=True)
+        self.router = Router(
+            always_route=["baz","taz"],
+            sink="sink"
+        )
+        with tempfile.TemporaryDirectory() as dirname:
+            with open(os.path.join(dirname, 'foo.conf'), 'w') as f:
+                f.write(yaml.safe_dump(self.rules))
+
+            src = '%s/*' % dirname
+            self.router.glob_config(src)
 
 
 class RaisesOnEqualityComparison(object):
