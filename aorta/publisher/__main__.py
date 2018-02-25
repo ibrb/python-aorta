@@ -102,9 +102,11 @@ class MessagePublisher(MessagingHandler):
     def on_start(self, event):
         self.container = event.container
         for addr in self.remotes:
-            connection = event.container.connect(addr,
-                sasl_enabled=self.use_sasl)
-            sender = event.container.create_sender(connection,
+            connection = None
+            if not self.use_sasl:
+                connection = event.container.connect(addr,
+                    sasl_enabled=False)
+            sender = event.container.create_sender(connection or addr,
                 target=self.target)
             self.senders.append(sender)
 

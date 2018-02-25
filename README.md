@@ -31,6 +31,27 @@ is at 100%.
 
 ## Background
 
+
+### Message types
+
+The Aorta framework specifies various message types containing
+information for interested consumers.
+
+#### Command
+
+
+#### Event
+
+
+#### Task
+
+
+#### Notify
+
+
+#### Heartbeat
+
+
 ## Install
 
 ## Usage
