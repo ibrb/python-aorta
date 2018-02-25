@@ -29,6 +29,8 @@ parser.add_argument('--loglevel', default='INFO',
     help="specifies the logging verbosity (default: %(default)s)")
 parser.add_argument('--ingress-channel', default='aorta.ingress',
     help="the ingress message channel at the AMQP peer (default: %(default)s)")
+parser.add_argument('--no-sasl', action='store_true',
+    help="disable SASL.")
 
 
 class MessagePublisher(MessagingHandler):
@@ -42,10 +44,11 @@ class MessagePublisher(MessagingHandler):
         return [x for x in self.senders if x.credit]
 
     def __init__(self, remotes, channel, spool='/var/spool/aorta', buf=None,
-        loglevel='INFO'):
+        loglevel='INFO', use_sasl=True):
         """Initialize a new :class:`MessagePublisher` instance."""
         super(MessagePublisher, self).__init__(auto_settle=False)
         self.remotes = remotes
+        self.use_sasl = use_sasl
         self.buf = buf or SpooledBuffer(spool=spool)
         self.loglevel = getattr(logging, loglevel)
         self.channel = channel
@@ -100,7 +103,7 @@ class MessagePublisher(MessagingHandler):
         self.container = event.container
         for addr in self.remotes:
             connection = event.container.connect(addr,
-                sasl_enabled=True)
+                sasl_enabled=self.use_sasl)
             sender = event.container.create_sender(connection,
                 target=self.target)
             self.senders.append(sender)
@@ -189,7 +192,7 @@ def main(argv):
     args = parser.parse_args(argv)
     handler = MessagePublisher(args.peers,
         channel=args.ingress_channel, spool=args.spool,
-        loglevel=args.loglevel)
+        loglevel=args.loglevel, use_sasl=not args.no_sasl)
     Container(handler).run()
 
 
