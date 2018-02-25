@@ -1,2 +1,4 @@
 python-qpid-proton==0.17.0
 pytz==2018.3
+PyYAML==3.12
+marshmallow==2.15.0
