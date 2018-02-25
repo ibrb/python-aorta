@@ -24,7 +24,7 @@ from .base import Router
 parser = argparse.ArgumentParser(
     prog='aorta publisher',
     description="Route incoming messages to the Aorta messaging infrastructure.")
-parser.add_argument('--bind', dest='bind', default='127.0.0.1:5672',
+parser.add_argument('--bind', dest='bind', default='0.0.0.0:5672',
     help="specifies the bind address (default: %(default)s)")
 parser.add_argument('-U', dest='peers', default=[], action='append',
     help="specifies the upstream AMQP peers by ip:port.")
