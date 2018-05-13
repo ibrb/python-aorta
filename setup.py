@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'pytz',
         'python-qpid-proton',
-	'PyYAML',
+	    'PyYAML',
     ],
     packages=find_packages()
 )
