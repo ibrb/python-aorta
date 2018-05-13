@@ -181,6 +181,12 @@ class MessagePublisher(MessagingHandler):
                 target=link.target.address,
                 sender=link, channel=self.channel)
 
+            # If the BaseBuffer.transfer() returns None instead of a
+            # tag, it means there was no message to send and thus we
+            # should break free from the loop.
+            if tag is None:
+                break
+
     def get_peer_address(self, obj):
         """Return the remote AMQP address and port for the given
         :class:`proton.Link` or :class:`proton.Connection`.

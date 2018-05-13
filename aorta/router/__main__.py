@@ -205,6 +205,12 @@ class MessageRouter(MessagingHandler):
                 target=link.target.address,
                 sender=link)
 
+            # If the BaseBuffer.transfer() returns None instead of a
+            # tag, it means there was no message to send and thus we
+            # should break free from the loop.
+            if tag is None:
+                break
+
     ###################################################################
     ##  MESSAGEROUTER BUSINESS LOGIC
     ###################################################################
