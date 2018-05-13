@@ -19,7 +19,7 @@ RUN pip3 install nose
 
 ADD . /usr/local/src/python-aorta
 WORKDIR /usr/local/src/python-aorta
-#RUN ./test
+RUN ./test
 RUN python3.6 setup.py install
 
 # Remove build dependencies.
