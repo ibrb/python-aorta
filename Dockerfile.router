@@ -1,0 +1,6 @@
+FROM ibrbops/aorta:latest
+LABEL maintainer="operations@ibrb.org"
+
+RUN mkdir -p /etc/aorta/routes.conf.d
+RUN mkdir -p /var/spool/aorta
+ENTRYPOINT ["python3.6","-m","aorta.router","--spool","/var/spool/aorta"]
