@@ -14,6 +14,7 @@ setup(
         'pytz',
         'python-qpid-proton',
 	    'PyYAML',
+        'marshmallow',
     ],
     packages=find_packages()
 )
