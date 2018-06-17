@@ -9,7 +9,7 @@ from aorta.router.rule import Rule
 class CriterionSchema(marshmallow.Schema):
     attname = fields.String(
         required=True,
-        load_from='name'
+        data_key='name'
     )
 
     op = fields.String(
@@ -17,7 +17,7 @@ class CriterionSchema(marshmallow.Schema):
         validate=[
             validate.OneOf(list(Criterion._matching_ops.keys()))
         ],
-        load_from='operator'
+        data_key='operator'
     )
 
     value = fields.Field(
@@ -25,11 +25,8 @@ class CriterionSchema(marshmallow.Schema):
     )
 
     def load(self, *args, **kwargs):
-        params, errors = super(CriterionSchema, self).load(*args, **kwargs)
-        if errors:
-            return params, errors
-
-        return Criterion(**params), errors
+        params = super(CriterionSchema, self).load(*args, **kwargs)
+        return Criterion(**params)
 
 
 class RuleSchema(marshmallow.Schema):
@@ -59,10 +56,7 @@ class RuleSchema(marshmallow.Schema):
     )
 
     def load(self, *args, **kwargs):
-        params, errors = super(RuleSchema, self).load(*args, **kwargs)
-        if errors:
-            return params, errors
-
-        return (Rule(**params), errors)\
+        params = super(RuleSchema, self).load(*args, **kwargs)
+        return Rule(**params)\
             if not self.many\
-            else ([Rule(**x) for x in params], errors)
+            else [Rule(**x) for x in params]

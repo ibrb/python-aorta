@@ -2,6 +2,7 @@ import os
 import tempfile
 import unittest
 
+import marshmallow
 import yaml
 
 from aorta.router.schema import RuleSchema
@@ -44,8 +45,7 @@ class RouterTestCase(unittest.TestCase):
 
     def setUp(self):
         self.schema = RuleSchema(many=True)
-        rules, errors = self.load_schema()
-        assert not errors, repr(errors)
+        rules = self.load_schema()
         self.router = Router(
             rules,
             always_route=["baz","taz"],
@@ -56,8 +56,8 @@ class RouterTestCase(unittest.TestCase):
         return self.schema.load(self.rules)
 
     def test_invalid_schema(self):
-        rules, errors = self.schema.load([{'bla': 'foo'}])
-        self.assertTrue(errors)
+        with self.assertRaises(marshmallow.exceptions.ValidationError):
+            rules = self.schema.load([{'bla': 'foo'}])
 
     def test_get_possible_routes(self):
         routes = self.router.get_possible_routes()

@@ -13,7 +13,7 @@ class Router(object):
     routed.
     """
     logger = logging.getLogger('aorta.router')
-    schema = RuleSchema(many=True, strict=True)
+    schema = RuleSchema(many=True)
 
     def __init__(self, rules=None, always_route=None, sink=None):
         self.rules = rules or []
@@ -25,7 +25,7 @@ class Router(object):
         """Loads a ruleset configuration from the given `path`."""
         self.logger.debug("Loading routes from %s", path)
         with open(path, 'r') as f:
-            rules, _ = self.schema.load(yaml.safe_load(f.read()))
+            rules = self.schema.load(yaml.safe_load(f.read()))
         self.rules.extend(rules)
         self.config.append(path)
 
