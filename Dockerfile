@@ -1,5 +1,5 @@
 FROM python:3.6.5-slim-stretch
-LABEL maintainer="operations@ibrb.org"
+LABEL maintainer="operations@wizardsofindustry.net"
 
 # The packages below are generic dependencies for libraries used by
 # SG compiled applications.

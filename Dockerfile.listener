@@ -1,5 +1,5 @@
-FROM ibrbops/aorta:latest
-LABEL maintainer="operations@ibrb.org"
+FROM wizardsofindustry/aorta:latest
+LABEL maintainer="operations@wizardsofindustry.net"
 
 RUN mkdir -p /var/spool/aorta
 ENTRYPOINT ["python3.6","-m","aorta.listener","--spool","/var/spool/aorta"]
